@@ -174,8 +174,30 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel("resources/objects/backpack/backpack.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+
+    //ranac
+    //Model ourModel("resources/objects/backpack/backpack.obj");
+   // ourModel.SetShaderTextureNamePrefix("material.");
+
+    //dvorac
+    stbi_set_flip_vertically_on_load(false);
+    Model dvorac("resources/objects/castle/source/Castle/Castle.obj");
+    dvorac.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+    //ostrvo
+    stbi_set_flip_vertically_on_load(false);
+    Model ostrvo("resources/objects/island/source/floating_island_exp3/floating_island_exp2/4.obj");
+    ostrvo.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+    //oblak
+    stbi_set_flip_vertically_on_load(false);
+    Model oblak("resources/objects/oblak/source/Cloud.obj");
+    oblak.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -190,7 +212,7 @@ int main() {
     DirLight& dirLight = programState->dirLight;
 
     dirLight.direction = glm::vec3(-2.0f, -1.0f, -0.3f);
-    dirLight.ambient = glm::vec3(0.9f, 0.5f, 0.8f);
+    dirLight.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
     dirLight.diffuse = glm::vec3(1, 0.7, 0.1);
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
@@ -215,12 +237,14 @@ int main() {
 
         // render
         // ------
-        glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        //glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+        //pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -243,12 +267,45 @@ int main() {
         ourShader.setMat4("view", view);
 
         // render the loaded model
+//        glm::mat4 model = glm::mat4(1.0f);
+//        model = glm::translate(model,
+//                               programState->backpackPosition); // translate it down so it's at the center of the scene
+//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+//        ourShader.setMat4("model", model);
+//        //model = glm::scale(model, glm::vec3(0.02f));
+//        ourModel.Draw(ourShader);
+
+        //dvorac
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+        //model = glm::translate(model, glm::vec3(-6.5f, -20.0f, 18.0f));
+        //model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0f, 0, 0));
+        model = glm::translate(model, glm::vec3(0.0f,-21.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(-5.0f,0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f,0.0f, -23.0f));
+        model = glm::scale(model, glm::vec3(0.93f));
+        //model = glm::scale(model, glm::vec3(0.7f));
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        dvorac.Draw(ourShader);
+
+        //ostrvo
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f,50.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(-20.0f,0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f,0.0f, -10.0f));
+
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        model = glm::scale(model, glm::vec3(0.5f));
+        ourShader.setMat4("model", model);
+        ostrvo.Draw(ourShader);
+
+        //oblak
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-10.0f, -15.0f, 10.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
+        model = glm::scale(model, glm::vec3(0.5f));
+        ourShader.setMat4("model", model);
+        oblak.Draw(ourShader);
+
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
@@ -271,6 +328,21 @@ int main() {
     glfwTerminate();
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
