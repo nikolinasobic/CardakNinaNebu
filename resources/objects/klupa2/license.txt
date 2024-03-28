@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bench Stylized
+* source:	https://sketchfab.com/3d-models/bench-stylized-ee9269517e1441b898ae25f6128bd969
+* author:	salmonclosebeta (https://sketchfab.com/salmonclosebeta)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bench Stylized" (https://sketchfab.com/3d-models/bench-stylized-ee9269517e1441b898ae25f6128bd969) by salmonclosebeta (https://sketchfab.com/salmonclosebeta) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

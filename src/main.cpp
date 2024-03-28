@@ -42,6 +42,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
 struct PointLight {
     glm::vec3 position;
     glm::vec3 ambient;
@@ -60,6 +61,9 @@ struct DirLight {
     glm::vec3 diffuse;
     glm::vec3 specular;
 };
+
+
+
 
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
@@ -215,6 +219,19 @@ int main() {
     Model drvo("resources/objects/drvo2/scene.gltf");
     drvo.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
+
+    //lampa
+    stbi_set_flip_vertically_on_load(false);
+    Model lampa("resources/objects/lampa2/scene.gltf");
+    lampa.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+    //klupa
+   // stbi_set_flip_vertically_on_load(false);
+    Model klupa("resources/objects/klupa2/scene.gltf");
+    klupa.SetShaderTextureNamePrefix("material.");
+   // stbi_set_flip_vertically_on_load(true);
+
 
 
 
@@ -408,10 +425,31 @@ int main() {
         model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, -28.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
-
         model = glm::scale(model, glm::vec3(0.04f));
         ourShader.setMat4("model", model);
         drvo.Draw(ourShader);
+
+        //lampa
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-16.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -38.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
+        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1.0f, 0));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
+        model = glm::scale(model, glm::vec3(2.0f));
+        ourShader.setMat4("model", model);
+        lampa.Draw(ourShader);
+
+
+        //klupa
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-13.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
+        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0));
+        model = glm::scale(model, glm::vec3(1.6f));
+        ourShader.setMat4("model", model);
+        klupa.Draw(ourShader);
 
 
 
