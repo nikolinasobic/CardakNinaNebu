@@ -170,6 +170,15 @@ int main() {
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
+    //Face culling (ne renderuju se stranice koje nisu vidljive)
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    //blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
@@ -201,9 +210,16 @@ int main() {
     oblak.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
+    //drvo
+    stbi_set_flip_vertically_on_load(false);
+    Model drvo("resources/objects/drvo2/scene.gltf");
+    drvo.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
 
 
-    // parametri za skybox
+
+
+    // skybox - parametri
     float skyboxVertices[] = {
             // positions
             -100.0f,  100.0f, -100.0f,
@@ -387,9 +403,19 @@ int main() {
         ourShader.setMat4("model", model);
         oblak.Draw(ourShader);
 
+        //drvo
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -28.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
+
+        model = glm::scale(model, glm::vec3(0.04f));
+        ourShader.setMat4("model", model);
+        drvo.Draw(ourShader);
 
 
-        //sejder se renderuje poslednji
+
+        //skybox se renderuje poslednji
 
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
