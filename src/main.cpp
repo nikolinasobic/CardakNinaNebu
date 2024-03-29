@@ -220,17 +220,33 @@ int main() {
     drvo.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-    //lampa
+//    //lampa
+//    stbi_set_flip_vertically_on_load(false);
+//    Model lampa("resources/objects/lampa2/scene.gltf");
+//    lampa.SetShaderTextureNamePrefix("material.");
+//    stbi_set_flip_vertically_on_load(true);
+//
+//    //klupa
+//   // stbi_set_flip_vertically_on_load(false);
+//    Model klupa("resources/objects/klupa2/scene.gltf");
+//    klupa.SetShaderTextureNamePrefix("material.");
+//   // stbi_set_flip_vertically_on_load(true);
+
+
+   //kula
     stbi_set_flip_vertically_on_load(false);
-    Model lampa("resources/objects/lampa2/scene.gltf");
-    lampa.SetShaderTextureNamePrefix("material.");
+    Model kula("resources/objects/kula3/scene.gltf");
+    kula.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-    //klupa
-   // stbi_set_flip_vertically_on_load(false);
-    Model klupa("resources/objects/klupa2/scene.gltf");
-    klupa.SetShaderTextureNamePrefix("material.");
-   // stbi_set_flip_vertically_on_load(true);
+
+    //kapija
+    stbi_set_flip_vertically_on_load(false);
+    Model kapija("resources/objects/kapija/scene.gltf");
+    kapija.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+
 
 
 
@@ -429,27 +445,48 @@ int main() {
         ourShader.setMat4("model", model);
         drvo.Draw(ourShader);
 
-        //lampa
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-16.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -38.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1.0f, 0));
-        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
-        model = glm::scale(model, glm::vec3(2.0f));
-        ourShader.setMat4("model", model);
-        lampa.Draw(ourShader);
+//        //lampa
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, glm::vec3(-16.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -38.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
+//        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1.0f, 0));
+//        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
+//        model = glm::scale(model, glm::vec3(2.0f));
+//        ourShader.setMat4("model", model);
+//        lampa.Draw(ourShader);
+//
+//
+//        //klupa
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, glm::vec3(-13.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
+//        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0));
+//        model = glm::scale(model, glm::vec3(1.6f));
+//        ourShader.setMat4("model", model);
+//        klupa.Draw(ourShader);
 
 
-        //klupa
+        //kula
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-13.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0));
-        model = glm::scale(model, glm::vec3(1.6f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -29.0f));
+        model = glm::scale(model, glm::vec3(0.8f));
         ourShader.setMat4("model", model);
-        klupa.Draw(ourShader);
+        kula.Draw(ourShader);
+
+
+        //kapija
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-40.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -29.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
+        model = glm::scale(model, glm::vec3(0.08f));
+        ourShader.setMat4("model", model);
+        kapija.Draw(ourShader);
 
 
 

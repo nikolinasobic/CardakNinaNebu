@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fairy Tower
+* source:	https://sketchfab.com/3d-models/fairy-tower-7931ce4828da40a882b4d8b9ab2cb037
+* author:	zharsky (https://sketchfab.com/zharsky)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fairy Tower" (https://sketchfab.com/3d-models/fairy-tower-7931ce4828da40a882b4d8b9ab2cb037) by zharsky (https://sketchfab.com/zharsky) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
