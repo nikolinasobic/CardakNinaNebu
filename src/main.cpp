@@ -43,6 +43,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 
+
+
 struct PointLight {
     glm::vec3 position;
     glm::vec3 ambient;
@@ -130,7 +132,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CardakNinaNebuNinaZemlji", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -183,18 +185,14 @@ int main() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // build and compile shaders
-    // -------------------------
+    // kompajliranje sejdera
     Shader ourShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
+    Shader hdrShader("resources/shaders/hdrShader.vs", "resources/shaders/hdrShader.fs");
 
 
-    // load models
-    // -----------
+    //ucitavanje modela
 
-    //ranac
-    //Model ourModel("resources/objects/backpack/backpack.obj");
-   // ourModel.SetShaderTextureNamePrefix("material.");
 
     //dvorac
     stbi_set_flip_vertically_on_load(false);
@@ -210,7 +208,7 @@ int main() {
 
     //oblak
     stbi_set_flip_vertically_on_load(false);
-    Model oblak("resources/objects/oblak/source/Cloud.obj");
+    Model oblak("resources/objects/oblak4/scene.gltf");
     oblak.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
@@ -246,6 +244,12 @@ int main() {
     kapija.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
+
+    //lav
+    stbi_set_flip_vertically_on_load(false);
+    Model lav("resources/objects/lav/scene.gltf");
+    lav.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
 
 
 
@@ -309,6 +313,7 @@ int main() {
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
 
 
 
@@ -428,19 +433,11 @@ int main() {
         ourShader.setMat4("model", model);
         ostrvo.Draw(ourShader);
 
-        //oblak
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-10.0f, -15.0f, 10.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
-        model = glm::scale(model, glm::vec3(0.5f));
-        ourShader.setMat4("model", model);
-        oblak.Draw(ourShader);
-
         //drvo
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-10.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -28.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
+        model = glm::translate(model, glm::vec3(-12.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -30.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -18.0f));
         model = glm::scale(model, glm::vec3(0.04f));
         ourShader.setMat4("model", model);
         drvo.Draw(ourShader);
@@ -480,13 +477,34 @@ int main() {
 
         //kapija
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-40.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -29.0f));
+        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -27.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -19.0f));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
-        model = glm::scale(model, glm::vec3(0.08f));
+        model = glm::scale(model, glm::vec3(2.0f));
         ourShader.setMat4("model", model);
         kapija.Draw(ourShader);
+
+
+        //lav
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -29.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
+        model = glm::scale(model, glm::vec3(0.02f));
+        ourShader.setMat4("model", model);
+        lav.Draw(ourShader);
+
+
+        //oblak
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, glm::vec3(-20.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -30.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -18.0f));
+//        model = glm::scale(model, glm::vec3(2.0f));
+//        ourShader.setMat4("model", model);
+//        oblak.Draw(ourShader);
+
 
 
 
