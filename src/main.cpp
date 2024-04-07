@@ -28,9 +28,26 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 unsigned int loadCubemap(vector<std::string> faces);
 
+//***
+void renderQuad();
+
+unsigned int loadTexture(char const * path, bool gammaCorrection);
+
+
+
+//***
+
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+
+//1920 1100
+//800 600
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1100;
+//***
+bool hdr = true;
+bool hdrKeyPressed = false;
+float exposure = 1.0f;
+//***
 
 // camera
 
@@ -186,13 +203,15 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // kompajliranje sejdera
+    //***
+    Shader shader("resources/shaders/lighting.vs", "resources/shaders/lighting.fs");
+    //***
     Shader ourShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader hdrShader("resources/shaders/hdrShader.vs", "resources/shaders/hdrShader.fs");
 
 
     //ucitavanje modela
-
 
     //dvorac
     stbi_set_flip_vertically_on_load(false);
@@ -201,10 +220,10 @@ int main() {
     stbi_set_flip_vertically_on_load(true);
 
     //ostrvo
-    stbi_set_flip_vertically_on_load(false);
+    //stbi_set_flip_vertically_on_load(false);
     Model ostrvo("resources/objects/island/source/floating_island_exp3/floating_island_exp2/4.obj");
     ostrvo.SetShaderTextureNamePrefix("material.");
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
 
     //oblak
     stbi_set_flip_vertically_on_load(false);
@@ -218,18 +237,11 @@ int main() {
     drvo.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-//    //lampa
+    //lampa
     stbi_set_flip_vertically_on_load(false);
     Model lampa("resources/objects/lampa2/scene.gltf");
     lampa.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
-//
-//    //klupa
-//   // stbi_set_flip_vertically_on_load(false);
-//    Model klupa("resources/objects/klupa2/scene.gltf");
-//    klupa.SetShaderTextureNamePrefix("material.");
-//   // stbi_set_flip_vertically_on_load(true);
-
 
    //kula
     stbi_set_flip_vertically_on_load(false);
@@ -237,22 +249,17 @@ int main() {
     kula.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-
     //kapija
     stbi_set_flip_vertically_on_load(false);
     Model kapija("resources/objects/kapija/scene.gltf");
     kapija.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-
     //lav
     stbi_set_flip_vertically_on_load(false);
     Model lav("resources/objects/lav/scene.gltf");
     lav.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
-
-
-
 
 
 
@@ -351,6 +358,42 @@ int main() {
     dirLight.diffuse = glm::vec3(1, 0.7, 0.1);
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
+//***
+    unsigned int rockTexture = loadTexture(FileSystem::getPath("resources/objects/island/source/floating_island_exp3/floating_island_exp2/mountainRock.jpeg").c_str(), true); // note that we're loading the texture as an SRGB texture
+
+//***
+
+    //***
+// configure floating point framebuffer
+    // ------------------------------------
+    unsigned int hdrFBO;
+    glGenFramebuffers(1, &hdrFBO);
+    // create floating point color buffer
+    unsigned int colorBuffer;
+    glGenTextures(1, &colorBuffer);
+    glBindTexture(GL_TEXTURE_2D, colorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // create depth buffer (renderbuffer)
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+    // attach buffers
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    shader.use();
+    shader.setInt("diffuseTexture", 0);
+    hdrShader.use();
+    hdrShader.setInt("hdrBuffer", 0);
+    //***
+
 
 
     // draw in wireframe
@@ -373,9 +416,41 @@ int main() {
         // render
         // ------
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        //glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
+        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //***
+        // 1. render scene into floating point framebuffer
+        // -----------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = programState->camera.GetViewMatrix();
+        shader.use();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, rockTexture);
+        // set lighting uniforms
+
+        //
+        std::vector<glm::vec3> lightPositions;
+        lightPositions.push_back(glm::vec3( pointLight.position));
+        // colors
+        std::vector<glm::vec3> lightColors;
+        lightColors.push_back(glm::vec3(pointLight.ambient));
+        //
+
+        for (unsigned int i = 0; i < lightPositions.size(); i++)
+        {
+            shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
+            shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
+        }
+        shader.setVec3("viewPos", programState->camera.Position);
+
+        //***
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
@@ -395,20 +470,14 @@ int main() {
         ourShader.setVec3("dirLight.diffuse", dirLight.diffuse);
         ourShader.setVec3("dirLight.specular", dirLight.specular);
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
+        projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = programState->camera.GetViewMatrix();
+        view = programState->camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-        // render the loaded model
-//        glm::mat4 model = glm::mat4(1.0f);
-//        model = glm::translate(model,
-//                               programState->backpackPosition); // translate it down so it's at the center of the scene
-//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
-//        ourShader.setMat4("model", model);
-//        //model = glm::scale(model, glm::vec3(0.02f));
-//        ourModel.Draw(ourShader);
+
+        //renderovanje modela
 
         //dvorac
         glm::mat4 model = glm::mat4(1.0f);
@@ -434,6 +503,7 @@ int main() {
         ostrvo.Draw(ourShader);
 
         //drvo
+        glDisable(GL_CULL_FACE);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-12.0f, 0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, -30.0f, 0.0f));
@@ -441,6 +511,7 @@ int main() {
         model = glm::scale(model, glm::vec3(0.04f));
         ourShader.setMat4("model", model);
         drvo.Draw(ourShader);
+        glEnable(GL_CULL_FACE);
 
 //        //lampa
         model = glm::mat4(1.0f);
@@ -497,17 +568,6 @@ int main() {
         lav.Draw(ourShader);
 
 
-        //oblak
-//        model = glm::mat4(1.0f);
-//        model = glm::translate(model, glm::vec3(-20.0f, 0.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, -30.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -18.0f));
-//        model = glm::scale(model, glm::vec3(2.0f));
-//        ourShader.setMat4("model", model);
-//        oblak.Draw(ourShader);
-
-
-
 
         //skybox se renderuje poslednji
 
@@ -519,9 +579,6 @@ int main() {
         // skybox cube
         glBindVertexArray(skyboxVAO);
         glActiveTexture(GL_TEXTURE0);
-
-
-
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureSky);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
@@ -530,10 +587,26 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+
+
+        //***
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // 2. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
+        // --------------------------------------------------------------------------------------------------------------------------
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        hdrShader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, colorBuffer);
+        hdrShader.setInt("hdr", hdr);
+        hdrShader.setFloat("exposure", exposure);
+        renderQuad();
+
+        //std::cout << "hdr: " << (hdr ? "on" : "off") << "| exposure: " << exposure << std::endl;
+        //***
+
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
-
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -710,3 +783,88 @@ unsigned int loadCubemap(vector<std::string> faces)
 
     return textureID;
 }
+
+
+//***
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const * path, bool gammaCorrection)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum internalFormat;
+        GLenum dataFormat;
+        if (nrComponents == 1)
+        {
+            internalFormat = dataFormat = GL_RED;
+        }
+        else if (nrComponents == 3)
+        {
+            internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
+            dataFormat = GL_RGB;
+        }
+        else if (nrComponents == 4)
+        {
+            internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
+            dataFormat = GL_RGBA;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
+
+
+//***
