@@ -660,6 +660,23 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
+
+
+    }
+
+    //podesavanje lampe da radi na klik
+    if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+        if (programState->pointLight.ambient == glm::vec3(1.0f)
+            && programState->pointLight.diffuse == glm::vec3(1.0f)
+            && programState->pointLight.specular == glm::vec3(0.6f) ) {
+            programState->pointLight.ambient = glm::vec3(0.0f);
+            programState->pointLight.diffuse == glm::vec3(0.0f);
+            programState->pointLight.specular == glm::vec3(0.0f);
+        } else {
+            programState->pointLight.ambient = glm::vec3(1.0f);
+            programState->pointLight.diffuse = glm::vec3(1.0f);
+            programState->pointLight.specular = glm::vec3(0.6f);
+        }
     }
 }
 
