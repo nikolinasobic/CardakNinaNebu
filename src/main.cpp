@@ -44,9 +44,10 @@ unsigned int loadTexture(char const * path, bool gammaCorrection);
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1100;
 //***
+bool bloom = true;
 bool hdr = true;
-bool hdrKeyPressed = false;
-float exposure = 1.0f;
+bool hKEY_Pressed = false;
+float exposure = 1.2f;
 //***
 
 // camera
@@ -193,7 +194,7 @@ int main() {
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    //Face culling (ne renderuju se stranice koje nisu vidljive)
+    //Face culling (ne renderuju se stranice koje se ne vide)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
@@ -209,6 +210,8 @@ int main() {
     Shader ourShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader hdrShader("resources/shaders/hdrShader.vs", "resources/shaders/hdrShader.fs");
+    Shader blurShader("resources/shaders/blur.vs", "resources/shaders/blur.fs");
+
 
 
     //ucitavanje modela
@@ -260,6 +263,10 @@ int main() {
     Model lav("resources/objects/lav/scene.gltf");
     lav.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
+
+    //oblaci
+    Model oblaci("resources/objects/oblaci/scene.gltf");
+    oblaci.SetShaderTextureNamePrefix("material.");
 
 
 
@@ -322,8 +329,6 @@ int main() {
     glEnableVertexAttribArray(0);
 
 
-
-
     vector<std::string> faces_sky {
             FileSystem::getPath("resources/textures/skybox/px.png"),
             FileSystem::getPath("resources/textures/skybox/nx.png"),
@@ -343,7 +348,7 @@ int main() {
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(-4.0f, -25.0f, -19.0f);
-    pointLight.ambient = glm::vec3(1.0f, 1.0f, 1.0f);
+    pointLight.ambient = glm::vec3(14.0f, 16.0f, 12.0f);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
@@ -368,30 +373,78 @@ int main() {
     // ------------------------------------
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
-    // create floating point color buffer
-    unsigned int colorBuffer;
-    glGenTextures(1, &colorBuffer);
-    glBindTexture(GL_TEXTURE_2D, colorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // create depth buffer (renderbuffer)
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    unsigned int colorBuffers[2];
+    glGenTextures(2, colorBuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(
+                GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL
+        );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // attach texture to framebuffer
+        glFramebufferTexture2D(
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0
+        );
+    }
+//    glBindTexture(GL_TEXTURE_2D, colorBuffer);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    // create depth buffer (renderbuffer)
     unsigned int rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
     // attach buffers
-    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    //    std::cout << "Framebuffer not complete!" << std::endl;
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    // finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    shader.use();
-    shader.setInt("diffuseTexture", 0);
+    // ping-pong-framebuffer for blurring
+    unsigned int pingpongFBO[2];
+    unsigned int pingpongColorbuffers[2];
+    glGenFramebuffers(2, pingpongFBO);
+    glGenTextures(2, pingpongColorbuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+        // also check if framebuffers are complete (no need for depth buffer)
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "Framebuffer not complete!" << std::endl;
+    }
+
+//    shader.use();
+//    shader.setInt("diffuseTexture", 0);
+//    hdrShader.use();
+//    hdrShader.setInt("hdrBuffer", 0);
     hdrShader.use();
     hdrShader.setInt("hdrBuffer", 0);
+    hdrShader.setInt("bloomBlur", 1);
+    blurShader.use();
+    blurShader.setInt("image", 0);
     //***
 
 
@@ -567,6 +620,15 @@ int main() {
         ourShader.setMat4("model", model);
         lav.Draw(ourShader);
 
+        //oblaci
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -29.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
+//        model = glm::scale(model, glm::vec3(0.02f));
+//        ourShader.setMat4("model", model);
+//        oblaci.Draw(ourShader);
+
 
 
         //skybox se renderuje poslednji
@@ -590,6 +652,22 @@ int main() {
 
 
         //***
+        bool horizontal = true, first_iteration = true;
+        unsigned int amount = 10;
+        blurShader.use();
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+            blurShader.setInt("horizontal", horizontal);
+            glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+//            glBindVertexArray(quadVAO);
+//            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//            glBindVertexArray(0);
+                renderQuad();
+            horizontal = !horizontal;
+            if (first_iteration)
+                first_iteration = false;
+        }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // 2. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
@@ -597,9 +675,17 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         hdrShader.use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, colorBuffer);
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+//        hdrShader.setInt("hdr", hdr);
+//        hdrShader.setFloat("exposure", exposure);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+        hdrShader.setInt("bloom", bloom);
         hdrShader.setInt("hdr", hdr);
         hdrShader.setFloat("exposure", exposure);
+//        glBindVertexArray(quadVAO);
+//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//        glBindVertexArray(0);
         renderQuad();
 
         //std::cout << "hdr: " << (hdr ? "on" : "off") << "| exposure: " << exposure << std::endl;
