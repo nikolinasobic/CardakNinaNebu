@@ -136,6 +136,12 @@ ProgramState *programState;
 
 void DrawImGui(ProgramState *programState);
 
+//***
+glm::vec3 amb;
+glm::vec3 diff;
+glm::vec3 spec;
+//***
+
 int main() {
     // glfw: initialize and configure
     // ------------------------------
@@ -348,9 +354,13 @@ int main() {
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(-4.0f, -25.0f, -19.0f);
-    pointLight.ambient = glm::vec3(14.0f, 16.0f, 12.0f);
+    pointLight.ambient = glm::vec3(1.1f, 1.2f, 1.3f);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+
+    amb = glm::vec3(pointLight.ambient);
+    diff = glm::vec3(pointLight.diffuse);
+    spec = glm::vec3(pointLight.specular);
 
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
@@ -810,6 +820,10 @@ void DrawImGui(ProgramState *programState) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+//glm::vec3 amb = glm::vec3(programState->pointLight.ambient);
+//glm::vec3 diff = glm::vec3(programState->pointLight.diffuse);
+//glm::vec3 spec = glm::vec3(programState->pointLight.specular);
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         programState->ImGuiEnabled = !programState->ImGuiEnabled;
@@ -824,17 +838,20 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
 
     //podesavanje lampe da radi na klik
+    
     if (key == GLFW_KEY_L && action == GLFW_PRESS) {
-        if (programState->pointLight.ambient == glm::vec3(1.0f)
-            && programState->pointLight.diffuse == glm::vec3(1.0f)
-            && programState->pointLight.specular == glm::vec3(0.6f) ) {
+        if (programState->pointLight.ambient != glm::vec3(0.0f)
+            && programState->pointLight.diffuse != glm::vec3(0.0f)
+            && programState->pointLight.specular != glm::vec3(0.0f) ) {
+
             programState->pointLight.ambient = glm::vec3(0.0f);
-            programState->pointLight.diffuse == glm::vec3(0.0f);
-            programState->pointLight.specular == glm::vec3(0.0f);
+            programState->pointLight.diffuse = glm::vec3(0.0f);
+            programState->pointLight.specular = glm::vec3(0.0f);
+
         } else {
-            programState->pointLight.ambient = glm::vec3(1.0f);
-            programState->pointLight.diffuse = glm::vec3(1.0f);
-            programState->pointLight.specular = glm::vec3(0.6f);
+            programState->pointLight.ambient = glm::vec3(amb);
+            programState->pointLight.diffuse = glm::vec3(diff);
+            programState->pointLight.specular = glm::vec3(spec);
         }
     }
 }
