@@ -42,11 +42,10 @@ unsigned int loadTexture(char const * path, bool gammaCorrection);
 //1920 1100
 //800 600
 const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1100;
+const unsigned int SCR_HEIGHT = 1000;
 //***
 bool bloom = true;
 bool hdr = true;
-bool hKEY_Pressed = false;
 float exposure = 1.2f;
 //***
 
@@ -93,6 +92,9 @@ struct ProgramState {
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     float backpackScale = 1.0f;
     PointLight pointLight;
+    //***
+    PointLight pointLight2;
+    //***
     DirLight dirLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -140,6 +142,10 @@ void DrawImGui(ProgramState *programState);
 glm::vec3 amb;
 glm::vec3 diff;
 glm::vec3 spec;
+
+glm::vec3 ambBlago;
+glm::vec3 diffBlago;
+glm::vec3 specBlago;
 //***
 
 int main() {
@@ -210,10 +216,7 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // kompajliranje sejdera
-    //***
-    Shader shader("resources/shaders/lighting.vs", "resources/shaders/lighting.fs");
-    //***
-    Shader ourShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
+    Shader modelShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader skyboxShader("resources/shaders/skyboxShader.vs", "resources/shaders/skyboxShader.fs");
     Shader hdrShader("resources/shaders/hdrShader.vs", "resources/shaders/hdrShader.fs");
     Shader blurShader("resources/shaders/blur.vs", "resources/shaders/blur.fs");
@@ -229,16 +232,8 @@ int main() {
     stbi_set_flip_vertically_on_load(true);
 
     //ostrvo
-    //stbi_set_flip_vertically_on_load(false);
     Model ostrvo("resources/objects/island/source/floating_island_exp3/floating_island_exp2/4.obj");
     ostrvo.SetShaderTextureNamePrefix("material.");
-    //stbi_set_flip_vertically_on_load(true);
-
-    //oblak
-    stbi_set_flip_vertically_on_load(false);
-    Model oblak("resources/objects/oblak4/scene.gltf");
-    oblak.SetShaderTextureNamePrefix("material.");
-    stbi_set_flip_vertically_on_load(true);
 
     //drvo
     stbi_set_flip_vertically_on_load(false);
@@ -270,9 +265,18 @@ int main() {
     lav.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-    //oblaci
-    Model oblaci("resources/objects/oblaci/scene.gltf");
-    oblaci.SetShaderTextureNamePrefix("material.");
+
+    //feniks
+    stbi_set_flip_vertically_on_load(false);
+    Model feniks("resources/objects/feniks/scene.gltf");
+    feniks.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+    //blago
+    stbi_set_flip_vertically_on_load(false);
+    Model blago("resources/objects/blago/scene.gltf");
+    feniks.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
 
 
 
@@ -350,10 +354,26 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
+    //***
+    PointLight& pointLightBlago = programState->pointLight2;
+    pointLightBlago.position = glm::vec3(-5.5f, -29.0f, -27.0f);
+    pointLightBlago.ambient = glm::vec3(2.0f, 2.0f, 2.0f);
+    pointLightBlago.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    pointLightBlago.specular = glm::vec3(5.0, 0.0, 5.0);
+
+    pointLightBlago.constant = 1.0f;
+    pointLightBlago.linear = 0.09f;
+    pointLightBlago.quadratic = 0.32f;
+
+    ambBlago = glm::vec3(pointLightBlago.ambient);
+    diffBlago = glm::vec3(pointLightBlago.diffuse);
+    specBlago = glm::vec3(pointLightBlago.specular);
+    //***
+
 
 
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(-4.0f, -25.0f, -19.0f);
+    pointLight.position = glm::vec3(-2.0f, -25.0f, -19.0f);
     pointLight.ambient = glm::vec3(1.1f, 1.2f, 1.3f);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
@@ -373,12 +393,7 @@ int main() {
     dirLight.diffuse = glm::vec3(1, 0.7, 0.1);
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
-//***
-    unsigned int rockTexture = loadTexture(FileSystem::getPath("resources/objects/island/source/floating_island_exp3/floating_island_exp2/mountainRock.jpeg").c_str(), true); // note that we're loading the texture as an SRGB texture
 
-//***
-
-    //***
 // configure floating point framebuffer
     // ------------------------------------
     unsigned int hdrFBO;
@@ -401,27 +416,14 @@ int main() {
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0
         );
     }
-//    glBindTexture(GL_TEXTURE_2D, colorBuffer);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 //    // create depth buffer (renderbuffer)
     unsigned int rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-    // attach buffers
-    //glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-    //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    //    std::cout << "Framebuffer not complete!" << std::endl;
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
     unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
-
-    // finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -446,21 +448,13 @@ int main() {
             std::cout << "Framebuffer not complete!" << std::endl;
     }
 
-//    shader.use();
-//    shader.setInt("diffuseTexture", 0);
-//    hdrShader.use();
-//    hdrShader.setInt("hdrBuffer", 0);
     hdrShader.use();
     hdrShader.setInt("hdrBuffer", 0);
     hdrShader.setInt("bloomBlur", 1);
     blurShader.use();
     blurShader.setInt("image", 0);
-    //***
 
 
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
@@ -479,7 +473,6 @@ int main() {
         // render
         // ------
 
-        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -491,153 +484,150 @@ int main() {
 
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
-        shader.use();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, rockTexture);
-        // set lighting uniforms
 
-        //
-        std::vector<glm::vec3> lightPositions;
-        lightPositions.push_back(glm::vec3( pointLight.position));
-        // colors
-        std::vector<glm::vec3> lightColors;
-        lightColors.push_back(glm::vec3(pointLight.ambient));
-        //
-
-        for (unsigned int i = 0; i < lightPositions.size(); i++)
-        {
-            shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
-            shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
-        }
-        shader.setVec3("viewPos", programState->camera.Position);
-
-        //***
 
         // don't forget to enable shader before setting uniforms
-        ourShader.use();
+        modelShader.use();
         //pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-        ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 32.0f);
+        modelShader.setVec3("pointLight.position", pointLight.position);
+        modelShader.setVec3("pointLight.ambient", pointLight.ambient);
+        modelShader.setVec3("pointLight.diffuse", pointLight.diffuse);
+        modelShader.setVec3("pointLight.specular", pointLight.specular);
+        modelShader.setFloat("pointLight.constant", pointLight.constant);
+        modelShader.setFloat("pointLight.linear", pointLight.linear);
+        modelShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+        modelShader.setVec3("viewPosition", programState->camera.Position);
+        modelShader.setFloat("material.shininess", 32.0f);
+        //***
+        modelShader.setVec3("pointLightBlago.position", pointLightBlago.position);
+        modelShader.setVec3("pointLightBlago.ambient", pointLightBlago.ambient);
+        modelShader.setVec3("pointLightBlago.diffuse", pointLightBlago.diffuse);
+        modelShader.setVec3("pointLightBlago.specular", pointLightBlago.specular);
+        modelShader.setFloat("pointLightBlago.constant", pointLightBlago.constant);
+        modelShader.setFloat("pointLightBlago.linear", pointLightBlago.linear);
+        modelShader.setFloat("pointLightBlago.quadratic", pointLightBlago.quadratic);
+        //modelShader.setVec3("viewPosition", programState->camera.Position);
+        //modelShader.setFloat("material.shininess", 32.0f);
+        //***
 
-        ourShader.setVec3("dirLight.direction", dirLight.direction);
-        ourShader.setVec3("dirLight.ambient", dirLight.ambient);
-        ourShader.setVec3("dirLight.diffuse", dirLight.diffuse);
-        ourShader.setVec3("dirLight.specular", dirLight.specular);
+        modelShader.setVec3("dirLight.direction", dirLight.direction);
+        modelShader.setVec3("dirLight.ambient", dirLight.ambient);
+        modelShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        modelShader.setVec3("dirLight.specular", dirLight.specular);
         // view/projection transformations
         projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         view = programState->camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
 
 
         //renderovanje modela
 
         //dvorac
         glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(-6.5f, -20.0f, 18.0f));
-        //model = glm::rotate(model, glm::radians(10.0f), glm::vec3(1.0f, 0, 0));
-        model = glm::translate(model, glm::vec3(0.0f,-21.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f,-22.5f, 0.0f));
         model = glm::translate(model, glm::vec3(-5.0f,0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f,0.0f, -23.0f));
         model = glm::scale(model, glm::vec3(0.93f));
         //model = glm::scale(model, glm::vec3(0.7f));
-        ourShader.setMat4("model", model);
-        dvorac.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        dvorac.Draw(modelShader);
 
         //ostrvo
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f,50.0f, 0.0f));
         model = glm::translate(model, glm::vec3(-20.0f,0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f,0.0f, -10.0f));
-
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1.0f, 0));
         model = glm::scale(model, glm::vec3(0.5f));
-        ourShader.setMat4("model", model);
-        ostrvo.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        ostrvo.Draw(modelShader);
 
         //drvo
+        // iskljucujemo face culling da bi se videli svi listovi
         glDisable(GL_CULL_FACE);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-12.0f, 0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, -30.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -18.0f));
         model = glm::scale(model, glm::vec3(0.04f));
-        ourShader.setMat4("model", model);
-        drvo.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        drvo.Draw(modelShader);
         glEnable(GL_CULL_FACE);
 
-//        //lampa
+        //lampa
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -29.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -29.5f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -18.0f));
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1.0f, 0));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
         model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(2.0f));
-        ourShader.setMat4("model", model);
-        lampa.Draw(ourShader);
-//
-//
-//        //klupa
-//        model = glm::mat4(1.0f);
-//        model = glm::translate(model, glm::vec3(-13.0f, 0.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.0f));
-//        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0));
-//        model = glm::scale(model, glm::vec3(1.6f));
-//        ourShader.setMat4("model", model);
-//        klupa.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        lampa.Draw(modelShader);
 
 
         //kula
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -37.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -38.5f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -29.0f));
         model = glm::scale(model, glm::vec3(0.8f));
-        ourShader.setMat4("model", model);
-        kula.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        kula.Draw(modelShader);
 
 
         //kapija
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -27.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -19.0f));
-        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
-        model = glm::scale(model, glm::vec3(2.0f));
-        ourShader.setMat4("model", model);
-        kapija.Draw(ourShader);
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -27.5f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -19.0f));
+//        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
+//        model = glm::scale(model, glm::vec3(2.0f));
+//        modelShader.setMat4("model", model);
+//        kapija.Draw(modelShader);
 
 
         //lav
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -29.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -29.4f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
         model = glm::scale(model, glm::vec3(0.02f));
-        ourShader.setMat4("model", model);
-        lav.Draw(ourShader);
+        modelShader.setMat4("model", model);
+        lav.Draw(modelShader);
 
-        //oblaci
-//        model = glm::mat4(1.0f);
-//        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, -29.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -17.0f));
-//        model = glm::scale(model, glm::vec3(0.02f));
-//        ourShader.setMat4("model", model);
-//        oblaci.Draw(ourShader);
+
+        //feniks
+        model = glm::mat4(1.0f);
+
+
+        model = glm::translate(model, glm::vec3(8.0f*cos(currentFrame), 4.0f,-8.0f * sin(currentFrame)));
+//        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+
+        //model = glm::translate(model, glm::vec3(6.0f * cos(currentFrame), 4.0f, 6.0f * sin(currentFrame)));
+
+        model = glm::translate(model, glm::vec3(-11.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -25.0f));
+//        model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0));
+        model = glm::rotate(model, glm::radians(90.0f)*sin(currentFrame)*sin(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+        model = glm::rotate(model, glm::radians(90.0f)*cos(currentFrame)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+        model = glm::scale(model, glm::vec3(0.009f));
+        modelShader.setMat4("model", model);
+        feniks.Draw(modelShader);
+
+        //blago
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-5.5f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -29.5f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -27.0f));
+        model = glm::scale(model, glm::vec3(0.15f));
+        modelShader.setMat4("model", model);
+        blago.Draw(modelShader);
+
+
 
 
 
@@ -670,10 +660,7 @@ int main() {
             glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
             blurShader.setInt("horizontal", horizontal);
             glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
-//            glBindVertexArray(quadVAO);
-//            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//            glBindVertexArray(0);
-                renderQuad();
+            renderQuad();
             horizontal = !horizontal;
             if (first_iteration)
                 first_iteration = false;
@@ -686,23 +673,13 @@ int main() {
         hdrShader.use();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-//        hdrShader.setInt("hdr", hdr);
-//        hdrShader.setFloat("exposure", exposure);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
         hdrShader.setInt("bloom", bloom);
         hdrShader.setInt("hdr", hdr);
         hdrShader.setFloat("exposure", exposure);
-//        glBindVertexArray(quadVAO);
-//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//        glBindVertexArray(0);
         renderQuad();
 
-        //std::cout << "hdr: " << (hdr ? "on" : "off") << "| exposure: " << exposure << std::endl;
-        //***
-
-        if (programState->ImGuiEnabled)
-            DrawImGui(programState);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -721,21 +698,6 @@ int main() {
     return 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
@@ -750,6 +712,22 @@ void processInput(GLFWwindow *window) {
         programState->camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    //***
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+    {
+        if (exposure > 0.0f)
+            exposure -= 0.1f;
+        else
+            exposure = 0.0f;
+        std::cout << exposure << endl;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        exposure += 0.1f;
+        std::cout << exposure << endl;
+    }
+    //***
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -785,41 +763,6 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     programState->camera.ProcessMouseScroll(yoffset);
 }
 
-void DrawImGui(ProgramState *programState) {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-
-    {
-        static float f = 0.0f;
-        ImGui::Begin("Hello window");
-        ImGui::Text("Hello text");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
-
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
-        ImGui::End();
-    }
-
-    {
-        ImGui::Begin("Camera info");
-        const Camera& c = programState->camera;
-        ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
-        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
-        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
-        ImGui::End();
-    }
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
 //glm::vec3 amb = glm::vec3(programState->pointLight.ambient);
 //glm::vec3 diff = glm::vec3(programState->pointLight.diffuse);
 //glm::vec3 spec = glm::vec3(programState->pointLight.specular);
@@ -838,7 +781,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
 
     //podesavanje lampe da radi na klik
-    
+
     if (key == GLFW_KEY_L && action == GLFW_PRESS) {
         if (programState->pointLight.ambient != glm::vec3(0.0f)
             && programState->pointLight.diffuse != glm::vec3(0.0f)
@@ -853,6 +796,30 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             programState->pointLight.diffuse = glm::vec3(diff);
             programState->pointLight.specular = glm::vec3(spec);
         }
+    }
+
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+        if (programState->pointLight2.ambient != glm::vec3(0.0f)
+            && programState->pointLight2.diffuse != glm::vec3(0.0f)
+            && programState->pointLight2.specular != glm::vec3(0.0f) ) {
+
+            programState->pointLight2.ambient = glm::vec3(0.0f);
+            programState->pointLight2.diffuse = glm::vec3(0.0f);
+            programState->pointLight2.specular = glm::vec3(0.0f);
+
+        } else {
+            programState->pointLight2.ambient = glm::vec3(ambBlago);
+            programState->pointLight2.diffuse = glm::vec3(diffBlago);
+            programState->pointLight2.specular = glm::vec3(specBlago);
+        }
+    }
+
+    if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+        hdr = !hdr;
+    }
+
+    if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+        bloom = !bloom;
     }
 }
 
