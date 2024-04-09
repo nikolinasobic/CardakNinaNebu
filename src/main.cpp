@@ -136,7 +136,7 @@ void ProgramState::LoadFromFile(std::string filename) {
 
 ProgramState *programState;
 
-void DrawImGui(ProgramState *programState);
+//void DrawImGui(ProgramState *programState);
 
 //***
 glm::vec3 amb;
@@ -579,14 +579,14 @@ int main() {
 
 
         //kapija
-//        model = glm::mat4(1.0f);
-//        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, -27.5f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -19.0f));
-//        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
-//        model = glm::scale(model, glm::vec3(2.0f));
-//        modelShader.setMat4("model", model);
-//        kapija.Draw(modelShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -27.5f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -19.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0));
+        model = glm::scale(model, glm::vec3(2.0f));
+        modelShader.setMat4("model", model);
+        kapija.Draw(modelShader);
 
 
         //lav
@@ -600,20 +600,32 @@ int main() {
 
 
         //feniks
+//        model = glm::mat4(1.0f);
+//
+//        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, -1.0f, 0));
+//        model = glm::translate(model, glm::vec3(8.0f*cos(currentFrame), 4.0f,8.0f * sin(currentFrame)));
+////        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+//
+//        //model = glm::translate(model, glm::vec3(6.0f * cos(currentFrame), 4.0f, 6.0f * sin(currentFrame)));
+//        model = glm::translate(model, glm::vec3(-17.0f, 0.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));
+//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.5f));
+//       model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0));
+//        model = glm::rotate(model, glm::radians(90.0f)*sin(currentFrame)*sin(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+//        model = glm::rotate(model, glm::radians(90.0f)*cos(currentFrame)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+//        model = glm::scale(model, glm::vec3(0.009f));
+//        modelShader.setMat4("model", model);
+//        feniks.Draw(modelShader);
+
+        //feniks
         model = glm::mat4(1.0f);
-
-
-        model = glm::translate(model, glm::vec3(8.0f*cos(currentFrame), 4.0f,-8.0f * sin(currentFrame)));
-//        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
-
-        //model = glm::translate(model, glm::vec3(6.0f * cos(currentFrame), 4.0f, 6.0f * sin(currentFrame)));
-
-        model = glm::translate(model, glm::vec3(-11.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -25.0f));
-//        model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(1.0f, 0.0f, 0));
-        model = glm::rotate(model, glm::radians(90.0f)*sin(currentFrame)*sin(currentFrame), glm::vec3(0.0f, 1.0f, 0));
-        model = glm::rotate(model, glm::radians(90.0f)*cos(currentFrame)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
+        model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -28.5f));
+        model = glm::translate(model, glm::vec3(4.0f*cos(currentFrame), -10.0f,4.0f*sin(currentFrame)));
+        model = glm::translate(model, glm::vec3 (1,cos(currentFrame)*0.7f,1));
+        model = glm::rotate(model, currentFrame, glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::rotate(model,glm::radians(180.0f), glm::vec3(0.0f ,0.0f, 1.0f));
+        model = glm::rotate(model,glm::radians(180.0f), glm::vec3(1.0f ,0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.009f));
         modelShader.setMat4("model", model);
         feniks.Draw(modelShader);
