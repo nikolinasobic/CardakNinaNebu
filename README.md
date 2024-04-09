@@ -1,9 +1,13 @@
 # CardakNinaNebu
+
 Projekat iz Računarske Grafike
 
-Implementirane oblasti : Osnovne (1-8 nedelja), Cubemaps (Grupa A), HDR (Grupa B), Bloom (Grupa B)
+Implementirane oblasti :
+ - Osnovne (1-8 nedelja)
+ - Cubemaps (Grupa A)
+ - HDR (Grupa B), Bloom (Grupa B)
 
-Face culling je primenjen na celu scenu, sem na drvo.
+Face culling je primenjen na celu scenu, osim na drvo.
 
 Video: [YouTube](/*link*/)
 
@@ -13,7 +17,7 @@ Video: [YouTube](/*link*/)
 
 ####  `L` - uključivanje / isključivanje lampe
 
-####  `T` - uključivanje / isključivanje point light-a kod blaga
+####  `T` - uključivanje / isključivanje sjaja nad blagom
 
 ####  `H` -  uključivanje / isključivanje HDR efekta
 

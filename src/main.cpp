@@ -265,17 +265,16 @@ int main() {
     lav.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
-
-    //feniks
-    stbi_set_flip_vertically_on_load(false);
-    Model feniks("resources/objects/feniks/scene.gltf");
-    feniks.SetShaderTextureNamePrefix("material.");
-    stbi_set_flip_vertically_on_load(true);
-
     //blago
     stbi_set_flip_vertically_on_load(false);
     Model blago("resources/objects/blago/scene.gltf");
-    feniks.SetShaderTextureNamePrefix("material.");
+    blago.SetShaderTextureNamePrefix("material.");
+    stbi_set_flip_vertically_on_load(true);
+
+    //ptica
+    stbi_set_flip_vertically_on_load(false);
+    Model ptica("resources/objects/ptica2/scene.gltf");
+    ptica.SetShaderTextureNamePrefix("material.");
     stbi_set_flip_vertically_on_load(true);
 
 
@@ -506,8 +505,6 @@ int main() {
         modelShader.setFloat("pointLightBlago.constant", pointLightBlago.constant);
         modelShader.setFloat("pointLightBlago.linear", pointLightBlago.linear);
         modelShader.setFloat("pointLightBlago.quadratic", pointLightBlago.quadratic);
-        //modelShader.setVec3("viewPosition", programState->camera.Position);
-        //modelShader.setFloat("material.shininess", 32.0f);
         //***
 
         modelShader.setVec3("dirLight.direction", dirLight.direction);
@@ -567,7 +564,6 @@ int main() {
         modelShader.setMat4("model", model);
         lampa.Draw(modelShader);
 
-
         //kula
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
@@ -576,7 +572,6 @@ int main() {
         model = glm::scale(model, glm::vec3(0.8f));
         modelShader.setMat4("model", model);
         kula.Draw(modelShader);
-
 
         //kapija
         model = glm::mat4(1.0f);
@@ -588,7 +583,6 @@ int main() {
         modelShader.setMat4("model", model);
         kapija.Draw(modelShader);
 
-
         //lav
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 0.0f));
@@ -597,38 +591,6 @@ int main() {
         model = glm::scale(model, glm::vec3(0.02f));
         modelShader.setMat4("model", model);
         lav.Draw(modelShader);
-
-
-        //feniks
-//        model = glm::mat4(1.0f);
-//
-//        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, -1.0f, 0));
-//        model = glm::translate(model, glm::vec3(8.0f*cos(currentFrame), 4.0f,8.0f * sin(currentFrame)));
-////        model = glm::rotate(model, glm::radians(-30.0f)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
-//
-//        //model = glm::translate(model, glm::vec3(6.0f * cos(currentFrame), 4.0f, 6.0f * sin(currentFrame)));
-//        model = glm::translate(model, glm::vec3(-17.0f, 0.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, -12.0f, 0.0f));
-//        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -30.5f));
-//       model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0));
-//        model = glm::rotate(model, glm::radians(90.0f)*sin(currentFrame)*sin(currentFrame), glm::vec3(0.0f, 1.0f, 0));
-//        model = glm::rotate(model, glm::radians(90.0f)*cos(currentFrame)*cos(currentFrame), glm::vec3(0.0f, 1.0f, 0));
-//        model = glm::scale(model, glm::vec3(0.009f));
-//        modelShader.setMat4("model", model);
-//        feniks.Draw(modelShader);
-
-        //feniks
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -28.5f));
-        model = glm::translate(model, glm::vec3(4.0f*cos(currentFrame), -10.0f,4.0f*sin(currentFrame)));
-        model = glm::translate(model, glm::vec3 (1,cos(currentFrame)*0.7f,1));
-        model = glm::rotate(model, currentFrame, glm::vec3(0.0f, -1.0f, 0.0f));
-        model = glm::rotate(model,glm::radians(180.0f), glm::vec3(0.0f ,0.0f, 1.0f));
-        model = glm::rotate(model,glm::radians(180.0f), glm::vec3(1.0f ,0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.009f));
-        modelShader.setMat4("model", model);
-        feniks.Draw(modelShader);
 
         //blago
         model = glm::mat4(1.0f);
@@ -639,7 +601,16 @@ int main() {
         modelShader.setMat4("model", model);
         blago.Draw(modelShader);
 
-
+        //ptica
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-14.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -29.5f));
+        model = glm::translate(model, glm::vec3(6.0f*cos(currentFrame), -9.0f,6.0f*sin(currentFrame)));
+        model = glm::rotate(model, currentFrame, glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::rotate(model,glm::radians(35.0f), glm::vec3(0.0f ,0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(0.009f));
+        modelShader.setMat4("model", model);
+        ptica.Draw(modelShader);
 
 
 
@@ -775,9 +746,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     programState->camera.ProcessMouseScroll(yoffset);
 }
 
-//glm::vec3 amb = glm::vec3(programState->pointLight.ambient);
-//glm::vec3 diff = glm::vec3(programState->pointLight.diffuse);
-//glm::vec3 spec = glm::vec3(programState->pointLight.specular);
+
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
