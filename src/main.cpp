@@ -39,10 +39,10 @@ unsigned int loadTexture(char const * path, bool gammaCorrection);
 
 // settings
 
-//1920 1100
+//1920 1000
 //800 600
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1000;
+int width = 1920;
+int height = 1080;
 //***
 bool bloom = true;
 bool hdr = true;
@@ -51,8 +51,8 @@ float exposure = 1.2f;
 
 // camera
 
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = width / 2.0f;
+float lastY = height / 2.0f;
 bool firstMouse = true;
 
 // timing
@@ -148,6 +148,10 @@ glm::vec3 diffBlago;
 glm::vec3 specBlago;
 //***
 
+unsigned int colorBuffers[2];
+unsigned int rboDepth;
+unsigned int pingpongColorbuffers[2];
+
 int main() {
     // glfw: initialize and configure
     // ------------------------------
@@ -162,7 +166,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CardakNinaNebuNinaZemlji", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(width, height, "CardakNinaNebuNinaZemlji", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -393,18 +397,21 @@ int main() {
     dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
 
 
+
+
 // configure floating point framebuffer
     // ------------------------------------
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-    unsigned int colorBuffers[2];
+    //unsigned int colorBuffers[2];
     glGenTextures(2, colorBuffers);
+    //ovde
     for (unsigned int i = 0; i < 2; i++)
     {
         glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
         glTexImage2D(
-                GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL
+                GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -416,10 +423,11 @@ int main() {
         );
     }
 //    // create depth buffer (renderbuffer)
-    unsigned int rboDepth;
+   // unsigned int rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+    // ovde
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
@@ -429,14 +437,14 @@ int main() {
 
     // ping-pong-framebuffer for blurring
     unsigned int pingpongFBO[2];
-    unsigned int pingpongColorbuffers[2];
+    //unsigned int pingpongColorbuffers[2];
     glGenFramebuffers(2, pingpongFBO);
     glGenTextures(2, pingpongColorbuffers);
     for (unsigned int i = 0; i < 2; i++)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
         glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
@@ -481,7 +489,7 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
 
 
@@ -513,7 +521,7 @@ int main() {
         modelShader.setVec3("dirLight.specular", dirLight.specular);
         // view/projection transformations
         projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+                                                (float) width / (float) height, 0.1f, 100.0f);
         view = programState->camera.GetViewMatrix();
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
@@ -681,6 +689,23 @@ int main() {
     return 0;
 }
 
+void hdr_resize() {
+    for (unsigned int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(
+                GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL
+        );
+    }
+
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
+    for (unsigned int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    }
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
@@ -715,10 +740,18 @@ void processInput(GLFWwindow *window) {
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, int _width, int _height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
+    width = _width;
+    height = _height;
+    hdr_resize();
+
     glViewport(0, 0, width, height);
+
+    //***bloom
+
+    //***bloom
 }
 
 // glfw: whenever the mouse moves, this callback is called
@@ -793,6 +826,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             programState->pointLight2.diffuse = glm::vec3(diffBlago);
             programState->pointLight2.specular = glm::vec3(specBlago);
         }
+    }
+
+    if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+        programState->CameraMouseMovementUpdateEnabled = !programState->CameraMouseMovementUpdateEnabled;
     }
 
     if (key == GLFW_KEY_H && action == GLFW_PRESS) {
@@ -887,6 +924,7 @@ unsigned int loadTexture(char const * path, bool gammaCorrection)
         }
         else if (nrComponents == 3)
         {
+
             internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
             dataFormat = GL_RGB;
         }
@@ -915,6 +953,8 @@ unsigned int loadTexture(char const * path, bool gammaCorrection)
 
     return textureID;
 }
+
+
 
 
 

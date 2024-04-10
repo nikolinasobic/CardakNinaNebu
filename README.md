@@ -27,6 +27,9 @@ Video: [YouTube](/*link*/)
 
 ####  `E` - povećavanje ekspozicije
 
+####  `M` - uključivanje / isključivanje miša
+
+
 ## Resursi
 
 #### Modeli: [sketchfab](sketchfab.com/feed) 
