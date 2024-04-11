@@ -35,7 +35,7 @@ Face culling je primenjen na celu scenu, osim na drvo.
 #### Modeli: [sketchfab](sketchfab.com/feed) 
 #### Skybox: [HDRI](https://polyhaven.com/) [Konverter](https://matheowis.github.io/HDRI-to-CubeMap/)
 
-#### Galerija:
+## Galerija:
 
 ![slika_1](1.png)
 ![slika_2](2.png)
