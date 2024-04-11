@@ -4,6 +4,7 @@ Projekat iz Računarske Grafike
 
 Implementirane oblasti :
  - Osnovne (1-8 nedelja)
+ - Modeli
  - Cubemaps (Grupa A)
  - HDR (Grupa B), Bloom (Grupa B)
 
@@ -34,4 +35,6 @@ Video: [YouTube](/*link*/)
 
 #### Modeli: [sketchfab](sketchfab.com/feed) 
 #### Skybox: [HDRI](https://polyhaven.com/) [Konverter](https://matheowis.github.io/HDRI-to-CubeMap/)
+
+![slika_1](Pictures/1.png)
 
