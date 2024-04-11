@@ -10,7 +10,6 @@ Implementirane oblasti :
 
 Face culling je primenjen na celu scenu, osim na drvo.
 
-Video: [YouTube](/*link*/)
 
 ## Uputstvo
 
@@ -36,5 +35,13 @@ Video: [YouTube](/*link*/)
 #### Modeli: [sketchfab](sketchfab.com/feed) 
 #### Skybox: [HDRI](https://polyhaven.com/) [Konverter](https://matheowis.github.io/HDRI-to-CubeMap/)
 
+#### Galerija:
+
 ![slika_1](1.png)
+![slika_2](2.png)
+![slika_3](3.png)
+![slika_4](4.png)
+
+
+
 
