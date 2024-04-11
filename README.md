@@ -36,5 +36,5 @@ Video: [YouTube](/*link*/)
 #### Modeli: [sketchfab](sketchfab.com/feed) 
 #### Skybox: [HDRI](https://polyhaven.com/) [Konverter](https://matheowis.github.io/HDRI-to-CubeMap/)
 
-![slika_1](Pictures/1.png)
+![slika_1](resources/images/1.png)
 
