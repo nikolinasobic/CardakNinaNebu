@@ -10,6 +10,9 @@ Implementirane oblasti :
 
 Face culling je primenjen na celu scenu, osim na drvo.
 
+Video: [YouTube](https://youtu.be/BKILH58S2Zk)
+
+
 
 ## Uputstvo
 
