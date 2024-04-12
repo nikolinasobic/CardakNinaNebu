@@ -39,8 +39,7 @@ unsigned int loadTexture(char const * path, bool gammaCorrection);
 
 // settings
 
-//1920 1000
-//800 600
+
 int width = 1920;
 int height = 1080;
 //***
